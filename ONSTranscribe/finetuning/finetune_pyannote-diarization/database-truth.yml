@@ -1,0 +1,20 @@
+Databases:
+  CustomDataset: dataset-ground-truth/audios/{uri}.wav
+
+Protocols:
+  CustomDataset:
+    SpeakerDiarization:
+      default:
+        scope: file
+        train:
+          uri: dataset-ground-truth/lists/train.txt
+          annotation: dataset-ground-truth/rttms/train/{uri}.rttm
+          annotated: dataset-ground-truth/uems/train/{uri}.uem
+        development:
+          uri: dataset-ground-truth/lists/dev.txt
+          annotation: dataset-ground-truth/rttms/dev/{uri}.rttm
+          annotated: dataset-ground-truth/uems/dev/{uri}.uem
+        test:
+          uri: dataset-ground-truth/lists/test.txt
+          annotation: dataset-ground-truth/rttms/test/{uri}.rttm
+          annotated: dataset-ground-truth/uems/test/{uri}.uem

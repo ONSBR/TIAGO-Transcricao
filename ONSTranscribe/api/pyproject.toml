@@ -1,0 +1,66 @@
+[project]
+name = "transcricao-audio"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "audioread==3.1.0",
+    "fastapi==0.135.3",
+    "h11==0.16.0",
+    "huggingface-hub==1.10.1",
+    "jmespath==1.0.1",
+    "joblib==1.5.3",
+    "lazy_loader==0.5",
+    "librosa==0.11.0",
+    "llama-index-core==0.14.20",
+    "llama-index-llms-bedrock-converse==0.14.5",
+    "llvmlite==0.47.0",
+    "numba==0.65.0",
+    "numpy==2.4.4",
+    "pandas==2.2.3",
+    "pooch==1.9.0",
+    "pydantic==2.12.5",
+    "resampy==0.4.3",
+    "scikit-learn==1.8.0",
+    "scipy==1.17.1",
+    "soundfile==0.13.1",
+    "soxr==1.0.0",
+    "starlette==1.3.1",
+    "threadpoolctl==3.6.0",
+    "tokenizers==0.22.2",
+    "torch==2.13.0",
+    "transformers==5.10.1",
+    "triton==3.7.1",
+    "typing_extensions==4.14.1",
+    "uvicorn==0.44.0",
+    "pyannote.audio==4.0.4",
+    "rapidfuzz==3.10.1",
+    "pydub==0.25.1",
+    "anthropic==0.28.1",
+]
+
+# Correcao de seguranca (advisory). Dependencia TRANSITIVA (chega via alembic),
+# por isso entra como constraint (piso de versao) e nao como pin direto: constraints
+# nao adicionam dependencia nova ao ambiente, apenas impedem o resolvedor de
+# escolher uma versao vulneravel do que ja seria instalado.
+[tool.uv]
+constraint-dependencies = [
+    "mako>=1.3.12",  # GHSA-jgxj-r6vp-cfpg / GHSA-mgqv-cq7g-2c3r
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.setuptools.packages.find]
+include = ["app*"] # Glob patterns for packages to include
+exclude = ["terraform*"] # Glob patterns for packages/directories to exclude
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

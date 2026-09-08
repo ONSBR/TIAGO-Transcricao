@@ -1,0 +1,41 @@
+{
+  "job_id": "gravacao_exemplo",
+  "status": "COMPLETED",
+  "source_link": "https://meu-bucket.s3.amazonaws.com/audios/gravacao_exemplo.wav",
+  "destination_link": "https://meu-bucket.s3.amazonaws.com/transcricoes/",
+  "language": "pt",
+  "info": {
+    "transcricaoAudio": {
+      "transcription_start": "2024-01-15T10:00:00.000000+00:00",
+      "transcription_end": "2024-01-15T10:02:30.000000+00:00",
+      "transcription_processing_time": 150.5,
+      "speakers": [
+        {
+          "name": "spk_0",
+          "startTime": 0.0,
+          "endTime": 5.2,
+          "text": "Confirmado, estamos verificando a situação na subestação."
+        },
+        {
+          "name": "spk_1",
+          "startTime": 5.5,
+          "endTime": 12.8,
+          "text": "Entendido, vou acionar o protocolo e retorno com atualização."
+        },
+        {
+          "name": "spk_0",
+          "startTime": 13.1,
+          "endTime": 18.4,
+          "text": "Certo, aguardo o retorno. Mantenha o monitoramento ativo."
+        }
+      ],
+      "key_entities": {
+        "local": "subestação",
+        "evento": "verificação operacional",
+        "acao": "acionamento de protocolo",
+        "assunto_do_audio": ["operação de manutenção", "monitoramento de rede"]
+      },
+      "summary": "Conversa operacional sobre verificação de situação em subestação e acionamento de protocolo de resposta."
+    }
+  }
+}

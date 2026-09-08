@@ -1,0 +1,140 @@
+# ---- Sistema operacional ----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# ---- Notas locais ----
+# Anotacoes de quem trabalha no repositorio, nao fazem parte da distribuicao.
+*.local.md
+
+# ---- Configuracao local de ferramentas de IA ----
+# Contem perfil AWS pessoal e preferencias de maquina.
+.kiro/
+.claude/
+.claude
+.claudeignore
+
+# ---- Metadados do Windows ----
+*:Zone.Identifier
+*.json:Zone.Identifier
+
+# ---- Editores e IDEs ----
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/settings.local.json
+
+# ---- Segredos e configuração de ambiente ----
+.env
+.env.*
+!.env.sample
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.ppk
+credentials
+aws_credentials
+
+# ---- Terraform ----
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+!*.tfvars.sample
+!*.tfvars.example
+
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+
+# ---- Area de recuperacao do finetuning — NUNCA versionar ----
+# Contem o dataset anotado com nome de operador do ONS e de agente, e os audios
+# de comunicacao operativa. E area de trabalho local, nao artefato do projeto.
+restore_finetuning/
+
+# ---- Dados operacionais — nunca versionar ----
+# Gravações, transcrições e qualquer saída derivada de áudio real.
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.flac
+audios/
+transcriptions/
+transcricoes/
+tmp/
+outputs/*.csv
+outputs/*.jsonl
+outputs/*.txt
+!outputs/README.md
+
+# ---- Artefatos de build de lambda ----
+# Estes .zip sao GERADOS por data "archive_file" no terraform apply a partir do
+# diretorio de codigo ao lado. Versiona-los duplica o codigo e faz o artefato ficar
+# defasado em relacao a fonte.
+ONSTranscribe/api/terraform/lambdas/*.zip
+# Os layers sao dependencias empacotadas, nao gerados a partir do repositorio:
+!ONSTranscribe/api/terraform/lambdas/layers/*.zip
+
+# ---- Prompts de dominio ----
+# Regra herdada do ONSTranscribe/.gitignore, que saiu do repositorio: os .txt reais sao
+# especificos de cada ambiente e nao entram aqui; so os .example.txt sao versionados.
+# prompts.tf resolve o arquivo com fileexists(), caindo no .example.txt quando falta o .txt.
+ONSTranscribe/api/terraform/prompts/*.txt
+!ONSTranscribe/api/terraform/prompts/*.example.txt
+
+# ---- Workspace gerado pela esteira de montagem ----
+.generated/
+
+# ---- Configuracao de devcontainer ----
+.devcontainer
+
+# ---- Modelos ----
+# Pesos ficam no S3, não no repositório.
+models/
+models_teste/
+*.ckpt
+*.safetensors
+*.bin
+
+# ---- Area de trabalho para publicacao no Hugging Face ----
+# Copia local dos pesos baixados do S3, para preparar e subir os repositorios no HF.
+# Sao 2,9 GB de modelo ajustado em comunicacao operativa real: nunca versionar.
+modelos-hf/
+
+# ---- Notebooks de rascunho ----
+teste.ipynb
+scratch.ipynb

@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+audios/
+ignore/
+*.tfvars
+terraform/
+tests/
+.dockerignore
+Dockerfile
+docker-compose.yml
+api_test.ipynb
+models/

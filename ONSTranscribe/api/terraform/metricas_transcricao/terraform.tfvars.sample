@@ -1,0 +1,56 @@
+# -----------------------------------------------------------------------------
+# MÉTRICAS DE QUALIDADE — Lambda calcular_metricas_transcricao
+#
+# metrics_groundtruth_key_path          : prefixo S3 dos .txt de referência
+# metrics_metadata_groundtruth_key_path : prefixo S3 da planilha de referência de metadados
+# metrics_audio_quality_key_paths       : prefixos dos áudios de teste (vírgula como separador)
+# metrics_s3_prefix                     : prefixos S3 dos artefatos da solução de métricas
+# metrics_athena_s3_prefix              : prefixos S3 dos artefatos do athena
+# metrics_athena_database_name          : nome do database do athena
+# metrics_bucket_name                   : nome do bucket S3 dedicado à solução de métricas
+#
+# PRÉ-REQUISITO DO DEPLOY: gerar o layer antes do terraform apply:
+#   pip install jiwer openpyxl -t /tmp/metricas_layer/python
+#   cd /tmp/metricas_layer && zip -r metricas_layer.zip python/
+#   cp /tmp/metricas_layer/metricas_layer.zip ONSTranscribe/api/terraform/lambdas/layers/metricas_layer.zip
+# -----------------------------------------------------------------------------
+metrics_groundtruth_key_path          = "testes/base-verdade/audios"
+metrics_metadata_groundtruth_key_path = "testes/base-verdade/metadados"
+metrics_audio_quality_key_paths       = "testes/qualidade/audios/salas/LOC1/,testes/qualidade/audios/salas/LOC2/,testes/qualidade/audios/salas/LOC3/,testes/qualidade/audios/salas/LOC4/"
+metrics_s3_prefix                     = "testes/qualidade/metricas"
+metrics_athena_s3_prefix              = "testes/qualidade/athena"
+metrics_athena_database_name          = "metricas_transcricao"
+metrics_bucket_name                   = "exemplo-metricas"
+
+# Valores padrão para o Lambda; podem ser sobrescritos no payload do evento na invocação
+metrics_model_version   = "whisper-v1"
+metrics_test_id         = "teste-1"
+metrics_max_audio_count = 200
+# integrated: metadados limitados ao escopo do GT de transcrição
+# independent: Set A (transcrição) e Set B (metadados) processados de forma independente
+processing_mode  = "independent"
+
+# -----------------------------------------------------------------------------
+# LAKE FORMATION — Principal de deploy
+#
+# ARN IAM estável do principal que executa o Terraform.
+# NÃO usar o ARN de sessão STS (assumed-role/…/SESSION) — Lake Formation rejeita.
+#
+# Como obter o ARN correto:
+#   SSO: aws sts get-caller-identity --query Arn --output text
+#        depois substituir "sts" por "iam" e "assumed-role/ROLE/SESSION" por "role/ROLE"
+#        ex: arn:aws:iam::ACCOUNT:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NOME_HASH
+#   IAM user direto: arn:aws:iam::ACCOUNT:user/USUARIO
+# -----------------------------------------------------------------------------
+metrics_deploy_lf_principal = "arn:aws:iam::ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NOME_HASH"
+
+# -----------------------------------------------------------------------------
+# LAKE FORMATION — Principais com acesso de leitura (SELECT/DESCRIBE)
+#
+# ARNs IAM estáveis dos principais que precisam consultar as tabelas de métricas.
+# Use quando o principal enxerga apenas as colunas de partição no Athena: o grant
+# nominal restaura a visibilidade de todas as colunas.
+# -----------------------------------------------------------------------------
+metrics_reader_lf_principals = [
+  "arn:aws:iam::ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NOME_HASH",
+]

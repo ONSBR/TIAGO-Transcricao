@@ -1,0 +1,340 @@
+# =============================================================================
+# terraform.tfvars.sample
+# Stack de Transcrição de Áudio (Pipeline ML / FastAPI + GPU)
+#
+# Copie este arquivo para terraform.tfvars e preencha com os valores do ambiente.
+# NUNCA commitar terraform.tfvars com valores reais no repositório.
+#
+# Segredos (hf_token, openai_api_key) devem entrar por variável de ambiente:
+#   export TF_VAR_hf_token="hf_..."
+#   export TF_VAR_openai_api_key="sk-..."
+# Atenção: valor presente no terraform.tfvars tem precedência sobre TF_VAR_*.
+# Para usar a variável de ambiente, deixe a linha correspondente comentada aqui.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# NOME DO PROJETO — prefixo de todos os recursos AWS criados por este Terraform
+#
+# Usado em: cluster ECS, ALB, Security Groups, SQS queues, IAM roles, etc.
+# Exemplo: "minha-empresa", "audio-api", "transcribe"
+#
+# LIMITES DE CARACTERES (impostos pela AWS):
+#   - ALB name:          máx 32 chars  →  project_name + "-alb-" + env ≤ 32
+#   - Target Group name: máx 32 chars  →  project_name + "-api-tg" ≤ 32
+#   - SQS FIFO name:     máx 75 chars  →  folgado
+#   - IAM role name:     máx 64 chars  →  folgado
+#
+# Recomendação: máx 20 caracteres (validado no variables.tf).
+#
+# ATENÇÃO (ambiente já provisionado): este prefixo compõe o "name" de recursos
+# reais. Em um state existente, mudar project_name RENOMEIA/RECRIA ALB, Target
+# Group, SQS, cluster ECS e IAM roles. Em ambiente existente, informe o mesmo
+# prefixo já usado no provisionamento.
+# -----------------------------------------------------------------------------
+project_name = "seu-projeto"
+
+# -----------------------------------------------------------------------------
+# AMBIENTE
+# Sufixo de todos os recursos e dos parâmetros SSM (ex: dev | dsv | hml | hom | prd)
+# -----------------------------------------------------------------------------
+environment = "seu-ambiente"
+
+# -----------------------------------------------------------------------------
+# REGIÃO AWS
+# Requer suporte a: Bedrock (modelo escolhido em transcribe_bedrock_model),
+# ECS Managed Instances com instância GPU (g4dn.*) e Lambda.
+# -----------------------------------------------------------------------------
+region = "us-east-1"
+
+# -----------------------------------------------------------------------------
+# REDE E VPC
+# private_subnet_ids: subnets privadas para ECS tasks e Lambdas
+# public_subnet_ids:  subnets para o ALB (mínimo 2 AZs)
+# -----------------------------------------------------------------------------
+vpc_id = "vpc-XXXXXXXXXXXXXXXXX"
+
+private_subnet_ids = [
+  "subnet-XXXXXXXXXXXXXXXXX", # AZ a (privada)
+  "subnet-XXXXXXXXXXXXXXXXX"  # AZ b (privada)
+]
+
+public_subnet_ids = [
+  "subnet-XXXXXXXXXXXXXXXXX", # AZ a
+  "subnet-XXXXXXXXXXXXXXXXX"  # AZ b
+]
+
+# -----------------------------------------------------------------------------
+# GPU — capacity provider ECS Managed Instances
+#
+# O provider é criado em capacity_provider.tf com nome estável
+# GPU-<prefixo>-<environment> (o prefixo GPU-* é exigido pela policy de deploy).
+# Os valores abaixo têm default no variables.tf; descomente só para sobrescrever.
+# -----------------------------------------------------------------------------
+# gpu_instance_type          = "g4dn.xlarge"
+# gpu_root_volume_size_gb    = 80
+# gpu_scale_in_after_seconds = 120
+
+# IAM do Managed Instances (defaults no variables.tf; sobrescreva se sua conta
+# usa outros nomes de role/instance profile).
+# ecs_infrastructure_role_name = "ecsInfrastructureRoleForManagedInstances"
+# ecs_instance_profile_name    = "ecsInstanceRole"
+
+# AMI GPU — usada apenas pelo caminho legado de EC2/Auto Scaling; o capacity
+# provider Managed Instances NÃO consome este valor. Mantido porque a variável
+# é declarada sem default. Obter a AMI da sua região com:
+#   aws ssm get-parameters \
+#     --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended \
+#     --region <SUA_REGIAO> --query 'Parameters[0].Value' | python3 -m json.tool
+# (copiar o campo "image_id" do output)
+gpu_ecs_ami_id = "ami-xxxxxxxxxxxxxxxxx"
+
+# -----------------------------------------------------------------------------
+# PROCESSAMENTO DE TRANSCRIÇÃO (pause de custo em ambientes não produtivos)
+#
+# transcription_processing_enabled (no apply):
+#   - define o valor *inicial* do parâmetro SSM
+#     /<project_name>/<environment>/transcription_processing_enabled
+#     (depois há lifecycle ignore_changes: o flip é feito sem apply,
+#      via aws ssm put-parameter)
+#   - se false no apply: autoscaling do ECS entra com min=max=0
+# true  = SSM inicial true  + ECS min/max abaixo
+# false = SSM inicial false + ECS min=max=0
+#
+# Defaults no variables.tf (true / 1 / 5); descomente só para sobrescrever.
+# -----------------------------------------------------------------------------
+# transcription_processing_enabled = true
+# ecs_min_capacity                 = 1
+# ecs_max_capacity                 = 5
+#
+# Flip apenas do enqueue (sem deploy/apply):
+#   aws ssm put-parameter \
+#     --name /<project_name>/<environment>/transcription_processing_enabled \
+#     --value false --type String --overwrite
+
+# -----------------------------------------------------------------------------
+# ECR — Repositório pré-existente com a imagem FastAPI/CUDA
+# PRÉ-REQUISITO: o repositório deve existir (com a tag latest) antes do apply.
+# Criar via: aws ecr create-repository --repository-name transcribe-api
+# -----------------------------------------------------------------------------
+ecr_repo_name = "transcribe-api"
+
+# -----------------------------------------------------------------------------
+# S3 — BUCKETS E PATHS
+#
+# Fluxo:
+#   audio_bucket/{control_room_key_path}*.wav
+#     -> SNS -> Lambda (enqueue) -> SQS -> worker ECS FastAPI
+#     -> bucket_name/{transcriptions_key_path}*.json
+#     -> SNS -> Lambda -> OpenSearch
+# -----------------------------------------------------------------------------
+raw_bucket_name         = "xxxxxxxxxxxxxxxx"
+bucket_name             = "xxxxxxxxxxxxxxxx"
+audio_bucket_name       = "xxxxxxxxxxxxxxxx"
+control_room_key_path   = "xxxxxxxxxxxxxxxx"
+transcriptions_key_path = "xxxxxxxxxxxxxxxx"
+vocabularies_key_path   = "xxxxxxxxxxxxxxxx"
+
+# -----------------------------------------------------------------------------
+# AMAZON TRANSCRIBE — VOCABULÁRIO CUSTOMIZADO (fluxo legado)
+# -----------------------------------------------------------------------------
+vocabulary_name = "xxxxxxxxxxxxxxxx"
+
+# -----------------------------------------------------------------------------
+# OPENSEARCH / ELASTICSEARCH
+# elastic_search_uri: endpoint HTTPS do cluster (sem trailing slash)
+# domain_name:        nome do domínio (usado na policy IAM da Lambda)
+# index_name:         nome do índice OpenSearch
+#
+# ATENÇÃO: se RUN_BOOTSTRAP_OPENSEARCH_DOMAIN=true na esteira, o
+# bootstrap_opensearch_domain.sh SOBRESCREVE estes 3 valores neste arquivo.
+# Deixe vazio quando o bootstrap for responsável por preenchê-los.
+# -----------------------------------------------------------------------------
+elastic_search_uri = ""
+domain_name        = ""
+index_name         = ""
+
+# -----------------------------------------------------------------------------
+# DYNAMODB
+# ATENÇÃO: nome sem sufixo de ambiente — cuidado em multi-ambiente na mesma conta
+# -----------------------------------------------------------------------------
+transcriptions_table_name = "xxxxxxxxxxxxxxxx"
+
+# -----------------------------------------------------------------------------
+# MODELOS ML — Caminhos no S3 (dentro do bucket_name)
+# Os modelos são baixados do S3 no startup da aplicação FastAPI.
+# Devem estar no S3 ANTES do primeiro deploy.
+#
+# Upload via: aws s3 sync ./models/ s3://{bucket_name}/{path}/
+# -----------------------------------------------------------------------------
+transcribe_s3_model_path                     = "xxxxxxxxxxxxxxxx"
+transcribe_s3_segmentation_model_path        = "xxxxxxxxxxxxxxxx"
+
+# -----------------------------------------------------------------------------
+# BEDROCK — MODELO PADRÃO
+# Model ID (ou inference profile) usado por todos os prompts do prompts.tf.
+# Preferir inference profile regional (prefixo "us.*").
+# Habilitar o modelo em: Console AWS -> Bedrock -> Model access
+# -----------------------------------------------------------------------------
+transcribe_bedrock_model = "us.meta.llama4-maverick-17b-instruct-v1:0"
+
+# -----------------------------------------------------------------------------
+# BEDROCK — MODELOS POR ETAPA (opcional)
+#
+# Vazio + SSM llm_step_models = "{}" faz todas as etapas usarem
+# transcribe_bedrock_model.
+#
+# Troca on-the-fly (sem apply):
+#   aws ssm put-parameter --name /<project_name>/<environment>/llm_step_models \
+#     --value '{"beautify":"<model-id>","entities":"<model-id>","subject":"<model-id>","summary":"<model-id>","fallback":"<model-id>"}' \
+#     --type String --overwrite
+# -----------------------------------------------------------------------------
+llm_step_models_json = "{}"
+llm_model_beautify   = ""
+llm_model_entities   = ""
+llm_model_subject    = ""
+llm_model_summary    = ""
+llm_fallback_model   = ""
+
+llm_max_tokens_beautify = 8000
+llm_max_tokens_entities = 4000
+llm_max_tokens_subject  = 2000
+llm_max_tokens_summary  = 4000
+
+# -----------------------------------------------------------------------------
+# LISTA DE GRAVADORES/LOCALIDADES
+# Usado pela Lambda para rotear áudios por localidade de origem.
+#
+# Formato: "CODIGO|Nome Completo", pares separados por underscore (_)
+# Exemplo: "ABC|Cidade A_XYZ|Cidade B_DEF|Cidade C"
+#
+# O código (ex: "ABC") deve corresponder ao segmento do path S3 dos áudios.
+# -----------------------------------------------------------------------------
+recorders_list = "ABC|Cidade A_XYZ|Cidade B"
+
+# -----------------------------------------------------------------------------
+# CÓDIGOS DAS LOCALIDADES — Lambda movimentacao_arquivos_wav_sala_de_controle
+# Mesmos códigos de recorders_list, separados por vírgula (sem nomes completos)
+# Exemplo: "ABC,XYZ,DEF"
+# -----------------------------------------------------------------------------
+location_codes = "ABC,XYZ"
+
+# -----------------------------------------------------------------------------
+# SEGREDOS — NÃO preencher neste arquivo
+#
+# hf_token:       token Hugging Face para baixar os modelos de diarização.
+# openai_api_key: usada apenas em código experimental; o fluxo principal usa Bedrock.
+#
+# Mantenha as linhas COMENTADAS e exporte as variáveis de ambiente:
+#   export TF_VAR_hf_token="hf_..."
+#   export TF_VAR_openai_api_key="sk-..."
+# (um valor descomentado aqui tem precedência sobre TF_VAR_* e vaza no arquivo)
+# -----------------------------------------------------------------------------
+# hf_token       = "hf_..."
+# openai_api_key = "sk-..."
+
+# -----------------------------------------------------------------------------
+# NORMALIZAÇÃO DE INSTALAÇÕES (base oficial de instalações)
+# athena_database:           database Glue/Athena com a base de instalações
+# athena_s3_output:          bucket + path para os resultados das queries Athena
+# installations_list_s3_key: key do JSON da lista de instalações (em bucket_name)
+# thresholds:                score de similaridade (0-100) para match automático
+#                            (high) e para descarte (abaixo de low)
+# -----------------------------------------------------------------------------
+athena_database                   = "xxxxxxxxxxxxxxxx"
+athena_s3_output                  = "s3://SEU-BUCKET/caminho/athena-output/"
+installations_list_s3_key         = "xxxxxxxxxxxxxxxx/installations.json"
+installation_match_threshold_high = 90
+installation_match_threshold_low  = 60
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS DE QUALIDADE — Lambda calcular_metricas_transcricao
+#
+# metrics_bucket_name                   : bucket dedicado à solução de métricas
+#                                         (DISTINTO de bucket_name)
+# metrics_groundtruth_key_path          : prefixo S3 dos .txt de referência
+# metrics_metadata_groundtruth_key_path : prefixo S3 dos metadados de referência
+# metrics_audio_quality_key_paths       : prefixos dos áudios de teste
+#                                         (vírgula como separador)
+# metrics_s3_prefix                     : prefixo dos JSONs de métricas
+#                                         ({prefix}/{model_version}/{test_id}/{run_id}.json)
+# metrics_athena_s3_prefix              : prefixo dos dados particionados do Athena
+# metrics_athena_database_name          : database Glue/Athena das métricas
+#
+# PRÉ-REQUISITO DO DEPLOY: gerar o layer antes do terraform apply:
+#   pip install jiwer openpyxl -t /tmp/metricas_layer/python
+#   cd /tmp/metricas_layer && zip -r metricas_layer.zip python/
+#   cp /tmp/metricas_layer/metricas_layer.zip \
+#      ONSTranscribe/api/terraform/lambdas/layers/metricas_layer.zip
+# -----------------------------------------------------------------------------
+# Controla se a solução de métricas é deployada. Default no código: false.
+# Mude para true SOMENTE após gerar o layer acima e definir
+# metrics_deploy_lf_principal; o primeiro apply das tabelas Glue/Lake Formation
+# exige um Lake Formation admin.
+deploy_metricas_solution = false
+
+metrics_bucket_name                   = "xxxxxxxxxxxxxxxx"
+metrics_groundtruth_key_path          = "testes/base-verdade/audios"
+metrics_metadata_groundtruth_key_path = "testes/base-verdade/metadados"
+metrics_audio_quality_key_paths       = "testes/qualidade/audios/ABC/,testes/qualidade/audios/XYZ/"
+metrics_s3_prefix                     = "testes/qualidade/metricas"
+metrics_athena_s3_prefix              = "testes/qualidade/athena"
+metrics_athena_database_name          = "metricas_transcricao"
+
+# Valores padrão para o Lambda; podem ser sobrescritos no payload do evento na invocação
+metrics_model_version   = "whisper-v1"
+metrics_test_id         = "baseline"
+metrics_max_audio_count = 200
+
+# integrated:   metadados limitados ao escopo do GT de transcrição
+# independent:  Set A (transcrição) e Set B (metadados) processados de forma independente
+processing_mode = "integrated"
+
+# -----------------------------------------------------------------------------
+# LAKE FORMATION — Principal de deploy (usado apenas com
+# deploy_metricas_solution = true)
+#
+# ARN IAM estável do principal que executa o Terraform.
+# NÃO usar o ARN de sessão STS (assumed-role/…/SESSION) — Lake Formation rejeita.
+#
+# Como obter o ARN correto:
+#   SSO: aws sts get-caller-identity --query Arn --output text
+#        depois substituir "sts" por "iam" e "assumed-role/ROLE/SESSION" por "role/ROLE"
+#        ex: arn:aws:iam::ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NOME_HASH
+#   IAM user direto: arn:aws:iam::ACCOUNT_ID:user/USUARIO
+# -----------------------------------------------------------------------------
+metrics_deploy_lf_principal = "arn:aws:iam::ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NOME_HASH"
+
+# ---------------------------------------------------------------------------
+# Primeiro estagio da ingestao (ingestao_gateway.tf)
+# ---------------------------------------------------------------------------
+# O audio chega no bucket gateway e a lambda de movimentacao o copia para o
+# caminho da sala de controle em audio_bucket_name, sob control_room_key_path.
+# Essa gravacao no destino e o que dispara a transcricao (sns.tf).
+
+# Bucket de chegada do audio.
+gateway_bucket = "xxxxxxxxxxxxxxxx"
+
+# Prefixo, dentro do bucket gateway, observado pela notificacao do S3.
+# Somente .wav sob este prefixo entram no pipeline.
+gateway_bucket_control_room_key_path = "xxxxxxxxxxxxxxxx"
+
+# ---------------------------------------------------------------------------
+# Credenciais de terceiros
+# ---------------------------------------------------------------------------
+# ATENCAO: estes dois valores sao segredos e sao injetados como variavel de
+# ambiente da task (ecs.tf). Um valor preenchido aqui fica em texto claro no
+# arquivo e no state do Terraform. Prefira passar por variavel de ambiente do
+# processo, sem escrever no arquivo:
+#
+#   export TF_VAR_hf_token='...'
+#   export TF_VAR_openai_api_key='...'
+#
+# Melhor ainda: mover ambos para SecureString no Parameter Store e ler em runtime,
+# como ja e feito com os modelos de LLM por etapa.
+
+# Token do Hugging Face, usado para baixar os modelos (o pyannote exige aceite de
+# termos no Hub).
+hf_token = "xxxxxxxxxxxxxxxx"
+
+# Chave da OpenAI, usada no pipeline de identificacao de assunto.
+openai_api_key = "xxxxxxxxxxxxxxxx"

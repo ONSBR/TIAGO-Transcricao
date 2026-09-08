@@ -1,0 +1,24 @@
+dataset/
+lightning_logs/
+dataset-1/
+dataset-2/
+exp/
+dataset-ground-truth/
+
+# Arquivos de dados locais — não commitar
+Base_Transcricoes.xlsx
+annotations.xlsx
+*.ckpt
+
+# Pastas geradas localmente
+AWSxONS/
+models/
+# Excecao: 'models' tambem e o nome de um modulo do pacote diarizers (codigo
+# vendorizado). Sem isto o pacote fica sem o modulo.
+!diarizers/src/diarizers/models/
+!diarizers/src/diarizers/models/**
+preds_pre/
+preds_ft/
+speaker-segmentation-fine-tuned*/
+__pycache__/
+.ipynb_checkpoints/

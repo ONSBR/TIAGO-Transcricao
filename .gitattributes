@@ -1,0 +1,15 @@
+# Normaliza fim de linha no repositorio, independente da configuracao de cada
+# maquina: os blobs ficam com LF e o checkout usa a convencao da plataforma.
+# Sem isto, quem clona no Windows com core.autocrlf=true ve arquivos como
+# modificados sem ter editado nada.
+* text=auto
+
+# Binarios: nunca converter.
+*.zip binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.wav binary
+*.ckpt binary
+*.safetensors binary
+*.bin binary

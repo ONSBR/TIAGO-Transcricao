@@ -1,0 +1,5 @@
+{
+  "audio_source_link": "https://meu-bucket.s3.amazonaws.com/audios/gravacao_exemplo.wav",
+  "destination_link": "https://meu-bucket.s3.amazonaws.com/transcricoes/",
+  "language": "pt"
+}

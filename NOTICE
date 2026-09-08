@@ -1,0 +1,62 @@
+ONS Transcribe — pipeline de transcrição de áudio operativo
+Copyright 2026 Operador Nacional do Sistema Elétrico (ONS)
+
+Este produto inclui software desenvolvido pelo Operador Nacional do Sistema Elétrico
+(ONS), distribuído sob a Apache License, Version 2.0.
+
+--------------------------------------------------------------------------------
+Componentes de terceiros incluídos neste repositório
+--------------------------------------------------------------------------------
+
+Os componentes abaixo estão incorporados ao código-fonte deste repositório e
+permanecem sob suas licenças originais.
+
+1. diarizers
+   Local: ONSTranscribe/finetuning/finetune_pyannote-diarization/diarizers/
+   Copyright 2023 The HuggingFace Team
+   Licença: Apache License, Version 2.0
+   Origem: https://github.com/huggingface/diarizers
+
+2. dscore
+   Local: ONSTranscribe/finetuning/finetune_pyannote-diarization/dscore_master/
+   Copyright (c) 2018, Neville Ryant
+   Licença: BSD 2-Clause License
+   Origem: https://github.com/nryant/dscore
+   Texto da licença: ONSTranscribe/finetuning/finetune_pyannote-diarization/dscore_master/LICENSE
+
+--------------------------------------------------------------------------------
+Dependências principais
+--------------------------------------------------------------------------------
+
+Este software depende dos projetos abaixo, obtidos via gerenciador de pacotes e não
+incluídos neste repositório. As licenças são as declaradas por cada projeto.
+
+  Whisper (OpenAI)                  MIT
+  transformers (Hugging Face)       Apache 2.0
+  PyTorch                           BSD 3-Clause
+  pyannote.audio                    MIT
+  FastAPI                           MIT
+  Uvicorn                           BSD 3-Clause
+  Pydantic                          MIT
+  boto3 / AWS SDK for Python        Apache 2.0
+  jiwer                             Apache 2.0
+
+--------------------------------------------------------------------------------
+Modelos de machine learning
+--------------------------------------------------------------------------------
+
+Os pesos dos modelos ajustados ao domínio do setor elétrico brasileiro NÃO são
+distribuídos neste repositório. O código de ajuste e as configurações estão em
+ONSTranscribe/finetuning/.
+
+O modelo base de transcrição é o Whisper Medium da OpenAI, distribuído sob licença MIT.
+Os modelos de separação de interlocutores derivam do pyannote, sob licença MIT, cujo uso
+pode exigir aceite de termos no Hugging Face Hub.
+
+--------------------------------------------------------------------------------
+Dados
+--------------------------------------------------------------------------------
+
+Nenhuma gravação de comunicação operativa, transcrição real, nome de operador do ONS ou
+de agente do setor elétrico é distribuído neste repositório. Os dados de exemplo e de
+teste são sintéticos.

@@ -1,0 +1,19 @@
+# Dados de treinamento e validação — contêm dados sensíveis, nunca commitar
+truths/*.csv
+truths/*.xlsx
+truths/*.xls
+!truths/sample_data.csv
+
+# Resultados com predições sobre dados reais
+results.csv
+
+# Modelos treinados (binários pesados, treinados em dados proprietários)
+models/**/*.joblib
+models/**/*.pkl
+models/**/*.npy
+
+# Embeddings e features intermediárias geradas durante o treinamento
+notebooks/embeddings_save/
+
+# Relatórios internos
+*.pdf

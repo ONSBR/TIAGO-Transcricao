@@ -1,0 +1,74 @@
+[project]
+name = "onstranscribestudies"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aioboto3==15.1.0",
+    "aiobotocore[boto3]==2.24.0",
+    "boto3==1.39.11",
+    "botocore==1.39.11",
+    "huggingface-hub>=0.34.4",
+    "intervaltree>=3.1.0",
+    "ipykernel>=6.30.1",
+    "ipywidgets>=8.1.7",
+    "numpy>=2.2.6",
+    "openpyxl>=3.1.5",
+    "pyannote-audio>=3.3.2",
+    "pyannote-database>=5.1.3",
+    "pydub>=0.25.1",
+    "safetensors>=0.6.2",
+    "scipy>=1.15.3",
+    "tabulate>=0.9.0",
+    "tensorboard>=2.20.0",
+]
+
+# Correcoes de seguranca (advisories). Todos os pacotes abaixo sao dependencias
+# TRANSITIVAS: nenhum e declarado em [project.dependencies], por isso a correcao
+# entra como constraint (piso de versao) em vez de pin direto. Constraints nao
+# adicionam dependencias novas ao ambiente -- apenas impedem que o resolvedor
+# escolha uma versao vulneravel do que ja seria instalado.
+[tool.uv]
+constraint-dependencies = [
+    # critical -- NAO APLICADO. Ver "pendencia: torch" abaixo.
+    # "torch>=2.13.0",          # GHSA-rrmf-rvhw-rf47
+    #
+    # pendencia: torch (critical, GHSA-rrmf-rvhw-rf47, corrigido em 2.13.0)
+    # Nao ha como subir torch neste ambiente sem quebrar os notebooks:
+    #   diarizers/ (vendorizado, nao pode ser alterado) importa a API interna
+    #   3.x do pyannote.audio (models.segmentation.PyanNet, core.task.Specifications,
+    #   utils.powerset.Powerset, audio.torchmetrics), logo pyannote.audio fica em 3.3.2;
+    #   pyannote.audio 3.3.2 + speechbrain usam a I/O legada do torchaudio
+    #   (torchaudio.AudioMetaData / list_audio_backends), removida no torchaudio 2.9.0;
+    #   portanto torchaudio precisa ficar <= 2.8.x;
+    #   e torchaudio 2.8.0 declara "torch==2.8.0" (pin exato).
+    # Resultado: torch fica preso em 2.8.0. Verificado empiricamente: com
+    # torch 2.14.0 + torchaudio 2.11.0, "import pyannote.audio" falha com
+    # AttributeError: module 'torchaudio' has no attribute 'AudioMetaData'.
+    # Sair da pendencia exige migrar para pyannote.audio 4.x (torchcodec) e
+    # adaptar diarizers/ + notebooks -- mudanca de codigo, fora deste escopo.
+    # high
+    "aiohttp>=3.14.3",
+    "pillow>=12.3.0",
+    "tornado>=6.5.8",
+    "urllib3>=2.7.0",
+    "mako>=1.3.12",
+    "protobuf>=6.33.5",
+    # medium
+    "requests>=2.33.0",
+    "setuptools>=83.0.0",
+    "idna>=3.15",
+    "fonttools>=4.60.2",
+    "werkzeug>=3.1.6",
+    "filelock>=3.20.3",
+    # low
+    "pygments>=2.20.0",
+    # lightning / pytorch-lightning: CVE-2026-58659 e CVE-2026-31221 nao tem
+    # versao corrigida publicada (ver pendencias no README/relatorio). O que da
+    # para blindar aqui e o incidente de supply chain CVE-2026-44484 /
+    # MAL-2026-3201: os artefatos 2.6.2 e 2.6.3 dos dois pacotes foram
+    # comprometidos no PyPI e precisam ficar fora de qualquer resolucao.
+    "lightning!=2.6.2,!=2.6.3",
+    "pytorch-lightning!=2.6.2,!=2.6.3",
+]

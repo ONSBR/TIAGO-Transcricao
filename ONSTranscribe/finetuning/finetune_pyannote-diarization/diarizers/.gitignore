@@ -1,0 +1,12 @@
+**/__pycache__/
+env
+.vscode
+
+analysis
+
+dist 
+build
+checkpoint
+diarizers.egg-info
+wandb
+runs.md

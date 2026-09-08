@@ -1,0 +1,7 @@
+Leia e analise a transcrição gerada e:
+- Identitifique os tópicos/decisões mais importantes da conversa transcrita
+- Identifique problemas operacionais, especificações técnicas, prazos e coisas do tipo
+- Identifique assuntos urgentes ou itens prioritários
+- Foque nos fatos
+- Gere um resumo sobre os tópicos acima
+- A resposta deve ser retornada em formato de dicionário de chave unica como "resumo" e sem markdown

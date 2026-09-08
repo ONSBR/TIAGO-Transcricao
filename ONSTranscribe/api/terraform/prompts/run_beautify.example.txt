@@ -1,0 +1,34 @@
+Corrija as transcrições a seguir passo a passo.
+NUNCA remova, substitua, altere a posição ou modifique qualquer ocorrência de %$% no texto.
+SEMPRE mantenha todos os %$% exatamente nos lugares originais onde aparecem.
+Os áudios representam interações entre {Sua Organização} e os agentes do {seu domínio}.
+Instruções:
+1. NUNCA remova ou substitua %$% do texto. No output, deixe sempre na mesma posição em que eles se encontravam.
+2. Correção de Nomes de Operadores: Verifique e corrija os nomes dos operadores caso necessário. Sempre deixe nomes próprios com letra Maiúscula.
+3. Correção de Localidades: Certifique-se de que os nomes de localidades estejam corretos e existam no Brasil.
+4. Correção de Nomes de Equipamentos: Ajuste os nomes de equipamentos de acordo com equipamentos do {seu domínio}.
+5. Todas as siglas devem ser colocadas em caixa alta (ex: 'org' → 'ORG').
+6. Padronize medidas e unidades de forma abreviada e correta (ex: 'megawatts' → 'MW', 'kilovolts' → 'kV').
+7. Utilize o glossário do contexto como referência na correção de Siglas e unidades de medida. Se uma sigla não estiver presente no glossário, substitua-a pela sigla mais similar existente nele.
+7.1 SEMPRE verifique se as siglas existem (Ex: "UHF" não existe no glossário, logo corrige para "UHE" que existe)
+8. Coerência Contextual: Assegure-se de que o texto corrigido faça sentido no contexto da operação do {seu domínio} e reflita a interação entre {Sua Organização} e os agentes.
+9. Pontuação e Gramática: Corrija qualquer erro gramatical ou de pontuação nas transcrições.
+10. Não utilize ':' para separar interlocutores.
+11. Não acrescente nada a transcrição, apenas corrija.
+12. Retorne apenas a transcrição corrigida.
+13. SEMPRE formate qualquer horário para o formato HH:MM:SS e datas para dd/mm/aaaa.
+(Ex: "11h24" → "11:24:00", "18:51" → "18:51:00", "5 minutos/min/minuto" → "00:05:00", "8 horas/h/hora" → "08:00:00", "10 segundos/s" → "00:00:10", "326" → "03:26:00", "014" → "00:14:00")
+OBS: Horários e datas podem conter letras ou abreviações incompletas. Sempre verifique o contexto antes de corrigir.
+14. Se o número não estiver no contexto de horário, duração ou data (como descrito no item 13), mantenha exatamente no formato original.
+15. Adicione pontuação.
+16. Antes da transcrição terá o nome do áudio, ele geralmente contém o nome do operador do Agente que não pertence a {Sua Organização}, utilize-o caso ache similaridades.
+Considere que no contexto do {seu domínio} existem: Centro de Operação de Transmissão,  Centro de Operação de Retaguarda
+Centro Regional de Operação do Sistema, Centro Nacional de Operação do Sistema, Centro de Operação de Geração
+Exemplo 1:
+Transcrição Original: "O operador jao P. está reportando uma falha na localidade Santum de Abreu no trafomador principal."
+Correção Esperada: "O operador João P. está reportando uma falha na localidade Santo Amaro de Abreu no transformador principal."
+NUNCA remova ou substitua %$% do texto.
+Não adicione o interlocutor no texto.
+NUNCA adicione o nome do áudio na transcrição corrigida. Ele só serve para referência.
+NUNCA adicione no texto Transcrição corrigida:
+Transcrição a ser corrigida:
